@@ -1,103 +1,209 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import Navbar from "./components/Navbar";
+import { Modal } from "./components/Modal";
+
+type Transaction = {
+  id: string;
+  amount: number;
+  type: "income" | "expense";
+  category: string;
+  note?: string | null;
+  createdAt: string;
+};
+
+export default function TransactionsPage() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+
+  const fetchTransactions = async () => {
+    const res = await fetch("/api/transactions");
+    const data = await res.json();
+    setTransactions(data);
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this transaction?")) {
+      await fetch(`/api/transactions/${id}`, { method: "DELETE" });
+      fetchTransactions();
+    }
+  };
+
+  const handleEdit = (transaction: Transaction) => {
+    setIsEditing(true);
+    setSelectedTransaction(transaction);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setIsEditing(false);
+    setSelectedTransaction(null);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsEditing(false);
+    setSelectedTransaction(null);
+    setIsModalOpen(false);
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="bg-gradient-to-br from-gray-100 to-gray-50 min-h-screen">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <h2 className="text-4xl font-extrabold text-gray-900 mb-8 tracking-tight drop-shadow-sm">
+          Transactions
+        </h2>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Add Transaction Button */}
+        <div className="flex justify-end mb-8">
+          <button
+            onClick={handleAdd}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 text-white font-semibold rounded-lg shadow-lg transition duration-300"
+            aria-label="Add Transaction"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Transaction
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          transaction={selectedTransaction}
+          onAdd={fetchTransactions}
+          onEdit={fetchTransactions}
+        />
+
+        {/* Transactions Table */}
+        <div className="overflow-x-auto bg-white rounded-xl shadow-lg ring-1 ring-gray-200">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-indigo-100">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-semibold text-indigo-900 uppercase tracking-wide"
+                >
+                  Category
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-semibold text-indigo-900 uppercase tracking-wide"
+                >
+                  Amount
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-semibold text-indigo-900 uppercase tracking-wide"
+                >
+                  Type
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-semibold text-indigo-900 uppercase tracking-wide"
+                >
+                  Note
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-semibold text-indigo-900 uppercase tracking-wide"
+                >
+                  Date
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-center text-sm font-semibold text-indigo-900 uppercase tracking-wide"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {transactions.map((tx) => (
+                <tr
+                  key={tx.id}
+                  className="hover:bg-indigo-50 transition-colors duration-200 cursor-pointer"
+                  tabIndex={0}
+                  aria-label={`Transaction: ${tx.category}, amount ${tx.amount}, type ${tx.type}`}
+                >
+                  <td className="px-6 py-4 text-gray-800 font-medium">
+                    {tx.category}
+                  </td>
+                  <td
+                    className={`px-6 py-4 font-semibold ${
+                      tx.type === "income" ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {tx.amount.toLocaleString("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    })}
+                  </td>
+                  <td className="px-6 py-4 capitalize text-gray-700 font-medium">
+                    {tx.type}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600 italic">
+                    {tx.note ?? "—"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 text-sm">
+                    {new Date(tx.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 flex justify-center gap-3">
+                    <button
+                      onClick={() => handleEdit(tx)}
+                      className="px-3 py-1 rounded-md bg-yellow-400 hover:bg-yellow-500 text-white font-semibold shadow-md transition duration-200"
+                      aria-label={`Edit transaction ${tx.category}`}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(tx.id)}
+                      className="px-3 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white font-semibold shadow-md transition duration-200"
+                      aria-label={`Delete transaction ${tx.category}`}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+
+              {transactions.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="py-8 text-center text-gray-400 italic"
+                  >
+                    No transactions found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
