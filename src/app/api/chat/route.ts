@@ -1,12 +1,11 @@
 // app/api/chat/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const runtime = "nodejs"; // avoid Edge env gotchas
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 type Transaction = {
   id: string;
@@ -19,11 +18,11 @@ type Transaction = {
 
 export async function POST(req: NextRequest) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      console.error("OPENAI_API_KEY is missing");
+    if (!process.env.GEMINI_API_KEY) {
+      console.error("GEMINI_API_KEY is missing");
       return NextResponse.json(
         {
-          reply: "AI is not configured yet. Add OPENAI_API_KEY in .env.local.",
+          reply: "AI is not configured yet. Add GEMINI_API_KEY in .env.local.",
         },
         { status: 200 }
       );
@@ -31,9 +30,8 @@ export async function POST(req: NextRequest) {
 
     const { message, transactions = [] } = await req.json();
 
-    // Compact + limit payload
     const slim: Transaction[] = (transactions as Transaction[])
-      .slice(-100) // last 100 only
+      .slice(-100)
       .map((t) => ({
         id: t.id,
         amount: Number(t.amount),
@@ -50,29 +48,22 @@ Be specific and actionable. If data is limited, say so and suggest next steps.`;
     const userPrompt = `
 User: ${message}
 
-Here are recent transactions (slimmed, latest 100):
+Here are recent transactions (latest 100, slimmed):
 ${JSON.stringify(slim).slice(0, 12000)}
 `;
+    // const models = await genAI.listModels();
+    // console.log("Available Models:", models);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    // Use a small, fast, affordable model
-    const resp = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const result = await model.generateContent(
+      `${systemPrompt}\n\n${userPrompt}`
+    );
 
-      temperature: 0.4,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-    });
+    const text = result.response.text().trim();
 
-    const reply =
-      resp.choices?.[0]?.message?.content?.trim() ||
-      "I couldn't form a reply from the data provided.";
-
-    return NextResponse.json({ reply });
+    return NextResponse.json({ reply: text });
   } catch (err: any) {
-    // Log the real error to your server console
-    console.error("CHAT_API_ERROR:", err?.message || err);
+    console.error("GEMINI_API_ERROR:", err?.message || err);
     return NextResponse.json(
       { reply: "AI error. Please try again." },
       { status: 200 }
