@@ -62,7 +62,7 @@ ${JSON.stringify(slim).slice(0, 12000)}
     const text = result.response.text().trim();
 
     return NextResponse.json({ reply: text });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("GEMINI_API_ERROR:", err?.message || err);
     return NextResponse.json(
       { reply: "AI error. Please try again." },
