@@ -64,6 +64,11 @@ ${JSON.stringify(slim).slice(0, 12000)}
     return NextResponse.json({ reply: text });
   } catch (err: unknown) {
     console.error("GEMINI_API_ERROR:", err?.message || err);
+     if (err instanceof Error) {
+      console.error("GEMINI_API_ERROR:", err.message); // Access message safely
+    } else {
+      console.error("GEMINI_API_ERROR: Unknown error", err); // Handle unknown errors
+    }
     return NextResponse.json(
       { reply: "AI error. Please try again." },
       { status: 200 }
