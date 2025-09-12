@@ -63,15 +63,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     });
 
     return NextResponse.json(updated);
-  } catch (error: unknown) {
+ } catch (error: unknown) {
   console.error("PUT Error:", error);
 
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2025"
-  ) {
+  if (isPrismaError(error) && error.code === "P2025") {
     return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
   }
 
