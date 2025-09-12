@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
-// Initialize Prisma Client as a global singleton to avoid multiple instances
+// Initialize Prisma Client as a global singleton
 const prisma = global.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== "production") global.prisma = prisma;
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params; // Await the promise to get params
 
   if (!id) {
     return NextResponse.json({ error: "Transaction ID is required" }, { status: 400 });
@@ -27,8 +27,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params; // Await the promise to get params
 
   if (!id) {
     return NextResponse.json({ error: "Transaction ID is required" }, { status: 400 });
