@@ -1,17 +1,19 @@
+// Import
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
-// Initialize Prisma Client as a global singleton
 declare global {
   var prisma: PrismaClient | undefined;
 }
-
 const prisma = global.prisma ?? new PrismaClient();
 if (process.env.NODE_ENV !== "production") global.prisma = prisma;
 
-// DELETE /api/transactions/[id]
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+// DELETE handler
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json({ error: "Transaction ID is required" }, { status: 400 });
@@ -19,11 +21,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   try {
     const transaction = await prisma.transaction.findUnique({ where: { id } });
-
     if (!transaction) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }
-
     await prisma.transaction.delete({ where: { id } });
     return new Response(null, { status: 204 });
   } catch (error) {
@@ -32,9 +32,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 }
 
-// PUT /api/transactions/[id]
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+// PUT handler
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json({ error: "Transaction ID is required" }, { status: 400 });
@@ -61,15 +64,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         note,
       },
     });
-
     return NextResponse.json(updated);
- } catch (error: unknown) {
-  console.error("PUT Error:", error);
-
-  if (isPrismaError(error) && error.code === "P2025") {
-    return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
+  } catch (error: unknown) {
+    console.error("PUT Error:", error);
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "P2025"
+    ) {
+      return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
+    }
+    return NextResponse.json({ error: "Failed to update transaction" }, { status: 500 });
   }
-
-  return NextResponse.json({ error: "Failed to update transaction" }, { status: 500 });
-}
 }
