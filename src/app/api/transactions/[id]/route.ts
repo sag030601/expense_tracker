@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 // Initialize Prisma Client as a global singleton
-const prisma = global.prisma || new PrismaClient();
+// const prisma = global.prisma || new PrismaClient();
+declare global {
+  // This tells TS that globalThis can have a `prisma` property of type PrismaClient
+  var prisma: PrismaClient | undefined;
+}
 if (process.env.NODE_ENV !== "production") global.prisma = prisma;
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
