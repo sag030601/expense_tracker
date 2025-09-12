@@ -72,3 +72,4 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   return NextResponse.json({ error: "Failed to update transaction" }, { status: 500 });
 }
+}
