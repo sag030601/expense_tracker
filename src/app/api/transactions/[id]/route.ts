@@ -63,13 +63,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     });
 
     return NextResponse.json(updated);
-  } catch (error: any) {
-    console.error("PUT Error:", error);
+  } catch (error: unknown) {
+  console.error("PUT Error:", error);
 
-    if (error.code === "P2025") {
-      return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ error: "Failed to update transaction" }, { status: 500 });
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2025"
+  ) {
+    return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
   }
+
+  return NextResponse.json({ error: "Failed to update transaction" }, { status: 500 });
 }
