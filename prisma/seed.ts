@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding transactions...");
 
-  const transactions = Array.from({ length: 100 }).map(() => ({
+  const transactions = Array.from({ length: 50 }).map(() => ({
     amount: parseFloat(faker.finance.amount({ min: 100, max: 50000 })),
     type: faker.helpers.arrayElement(['income', 'expense']),
     category: faker.helpers.arrayElement([
