@@ -6,7 +6,7 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 type Props = {
   // Optional: pass data for richer answers
-  context?: any;
+  context?: unknown;
   title?: string;
 };
 
