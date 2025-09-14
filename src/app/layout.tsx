@@ -2,6 +2,7 @@
 import "./globals.css";
 import Link from "next/link";
 import { ReactNode } from "react";
+import Providers from "./components/providers";
 
 export const metadata = {
   title: "Finance Tracker",
@@ -19,7 +20,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Link href="/dashboard" className="hover:underline">Dashboard</Link>
           </nav>
         </header> */}
-        <main className="">{children}</main>
+        
+        <Providers>
+          <main>{children}</main>
+        </Providers>
+        
       </body>
     </html>
   );
