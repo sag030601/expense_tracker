@@ -1,9 +1,11 @@
+// src/app/api/auth/[...nextauth]/route.ts
+
 import NextAuth, { NextAuthOptions, Session } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/libs/prisma";
 
-// ✅ Inline declaration for session typing
+// ✅ Extend Session type
 declare module "next-auth" {
   interface Session {
     user: {
@@ -15,7 +17,7 @@ declare module "next-auth" {
   }
 }
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
@@ -28,11 +30,19 @@ const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
-  debug:true,
+  debug: true,
   callbacks: {
+      async jwt({ token, user }) {
+          console.log("🔑 JWT callback:", { token, user });
+      // Runs when JWT is created or updated
+      if (user) {
+        token.id = user.id; // attach Prisma user.id
+      }
+      return token;
+    },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub; // now typed
+        session.user.id = token.id as string; ;
       }
       return session;
     },
