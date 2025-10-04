@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding transactions...");
 
-  const userId = 1; // Change this based on your existing users or use dynamic fetching.
+  const userId = "1"; // Change this based on your existing users or use dynamic fetching.
 
   const transactions = Array.from({ length: 50 }).map(() => ({
     amount: parseFloat(faker.finance.amount({ min: 100, max: 50000 })),
