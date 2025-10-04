@@ -1,13 +1,23 @@
 import { PrismaClient } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 import { config } from "dotenv";
+
 config({ path: ".env.local" });
+
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 Seeding transactions...");
 
-  const userId = "1"; // Change this based on your existing users or use dynamic fetching.
+  const user = await prisma.user.findFirst();
+
+  // Check if user exists
+  if (!user) {
+    console.log("❌ No user found in the database. Please create a user first.");
+    return;
+  }
+
+  const userId = user.id;
 
   const transactions = Array.from({ length: 50 }).map(() => ({
     amount: parseFloat(faker.finance.amount({ min: 100, max: 50000 })),
@@ -26,12 +36,15 @@ async function main() {
     ]),
     note: faker.lorem.sentence(),
     createdAt: faker.date.between({ from: "2024-01-01", to: new Date() }),
-    userId: userId,
+    userId: userId, // Using userId from fetched user
   }));
 
-  await prisma.transaction.createMany({ data: transactions });
-
-  console.log("✅ Seeding completed.");
+  try {
+    await prisma.transaction.createMany({ data: transactions });
+    console.log("✅ Seeding completed.");
+  } catch (err) {
+    console.error("❌ Error occurred while seeding transactions:", err);
+  }
 }
 
 main()
