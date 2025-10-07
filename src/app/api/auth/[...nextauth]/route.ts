@@ -28,11 +28,11 @@ const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
-  debug:true,
+  debug: true,
   callbacks: {
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub; // now typed
+      if (session.user && token.sub) {
+        session.user.id = token.sub; // Ensure token.sub is a string before assignment
       }
       return session;
     },
