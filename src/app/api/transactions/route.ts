@@ -28,6 +28,7 @@ export async function POST(req: Request) {
       type,
       category,
       note: note || null,
+      user: { connect: { id: userId } },
     },
   });
 
