@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 // import { PrismaClient } from '@/generated/prisma';
 import { PrismaClient } from '@prisma/client'; 
-
+import { getSession } from 'next-auth/react';
 
 const prisma = new PrismaClient();
 
