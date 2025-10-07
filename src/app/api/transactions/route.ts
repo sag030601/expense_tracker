@@ -14,21 +14,27 @@ export async function GET() {
   return NextResponse.json(transactions);
 }
 
+
 export async function POST(req: Request) {
   const body = await req.json();
   const { amount, type, category, note } = body;
 
-  if (!amount || !type || !category) {
-    return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+  // Step 1: Get the session to extract the user ID
+  const session = await getSession();
+  
+  if (!session?.user?.id) {
+    // If there is no user ID in the session, return a 401 Unauthorized response
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
+  // Step 2: Use the user ID from the session to associate the transaction
   const newTransaction = await prisma.transaction.create({
     data: {
       amount: parseFloat(amount),
       type,
       category,
       note: note || null,
-      user: { connect: { id: userId } },
+      user: { connect: { id: session.user.id } }, // Connect the user to the transaction
     },
   });
 
